@@ -1,0 +1,8 @@
+{
+  "name": "Smart Store POS",
+  "description": "A smart point-of-sale system for convenience stores featuring dark mode aesthetics and intelligent inventory management.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
