@@ -11,18 +11,25 @@ export default function Dashboard() {
     }, []);
 
     const totalSales = orders.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+    const totalProfit = orders.reduce((sum, order) => sum + (order.profit || 0), 0);
 
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <h2 className="text-2xl font-bold mb-6">经营概况</h2>
 
             {/* 顶部卡片 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-neutral-900 p-6 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-3 text-gray-400 mb-2">
                         <DollarSign size={20} className="text-green-500" /> 总销售额
                     </div>
                     <div className="text-3xl font-bold text-white font-mono">¥{totalSales.toFixed(2)}</div>
+                </div>
+                <div className="bg-neutral-900 p-6 rounded-2xl border border-white/5">
+                    <div className="flex items-center gap-3 text-gray-400 mb-2">
+                        <TrendingUp size={20} className="text-yellow-500" /> 总利润
+                    </div>
+                    <div className="text-3xl font-bold text-white font-mono">¥{totalProfit.toFixed(2)}</div>
                 </div>
                 <div className="bg-neutral-900 p-6 rounded-2xl border border-white/5">
                     <div className="flex items-center gap-3 text-gray-400 mb-2">
@@ -49,6 +56,7 @@ export default function Dashboard() {
                             <th className="p-4">时间</th>
                             <th className="p-4">订单号</th>
                             <th className="p-4">金额</th>
+                            <th className="p-4">利润</th>
                             <th className="p-4">状态</th>
                         </tr>
                     </thead>
@@ -58,6 +66,7 @@ export default function Dashboard() {
                                 <td className="p-4 text-gray-400">{new Date(order.created_at).toLocaleString()}</td>
                                 <td className="p-4 font-mono text-xs text-gray-500">#{order.id}</td>
                                 <td className="p-4 font-bold">¥{order.total_amount}</td>
+                                <td className="p-4 font-bold text-yellow-500">¥{(order.profit || 0).toFixed(2)}</td>
                                 <td className="p-4"><span className="bg-green-500/10 text-green-500 px-2 py-1 rounded text-xs">已完成</span></td>
                             </tr>
                         ))}
