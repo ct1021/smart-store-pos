@@ -120,6 +120,22 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const fetchExpenses = async () => {
+    const { data, error } = await supabase.from('expenses').select('*').order('created_at', { ascending: false });
+    if (error) {
+      console.error('Error fetching expenses:', error);
+    } else {
+      const mapped = (data || []).map((e: any) => ({
+        id: e.id,
+        name: e.name,
+        amount: e.amount,
+        category: e.category || 'other',
+        date: e.date || new Date().toISOString().split('T')[0]
+      }));
+      setExpenses(mapped);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchOrders();
