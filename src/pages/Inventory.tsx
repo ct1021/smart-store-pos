@@ -647,6 +647,63 @@ const Inventory: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Expiration Management */}
+                            <div className="bg-zinc-50 dark:bg-zinc-800/50 p-4 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                                <div className="flex items-center gap-2 mb-3 text-zinc-500 dark:text-zinc-400 text-xs font-bold uppercase"><AlertTriangle size={12} /> 过期管理</div>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="text-xs font-bold text-zinc-500 mb-1.5 block">生产日期</label>
+                                        <input
+                                            type="date"
+                                            value={productForm.productionDate}
+                                            onChange={e => setProductForm({ ...productForm, productionDate: e.target.value })}
+                                            className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-3 outline-none focus:ring-1 focus:ring-primary text-zinc-900 dark:text-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-zinc-500 mb-1.5 block">保质期（天）</label>
+                                        <select
+                                            value={productForm.shelfLifeDays}
+                                            onChange={e => setProductForm({ ...productForm, shelfLifeDays: e.target.value })}
+                                            className="w-full bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl p-3 outline-none focus:ring-1 focus:ring-primary text-zinc-900 dark:text-white"
+                                        >
+                                            <option value="">不设置</option>
+                                            <option value="7">7天（1周）</option>
+                                            <option value="15">15天（半月）</option>
+                                            <option value="30">30天（1个月）</option>
+                                            <option value="90">90天（3个月）</option>
+                                            <option value="180">180天（6个月）</option>
+                                            <option value="365">365天（1年）</option>
+                                            <option value="730">730天（2年）</option>
+                                        </select>
+                                    </div>
+                                    {(() => {
+                                        const expInfo = calculateExpirationInfo({
+                                            productionDate: productForm.productionDate,
+                                            shelfLifeDays: productForm.shelfLifeDays ? parseInt(productForm.shelfLifeDays) : undefined
+                                        });
+                                        if (!expInfo) return null;
+
+                                        return (
+                                            <div className={`p-3 rounded-xl text-xs ${expInfo.isExpired ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
+                                                    expInfo.isExpiringSoon ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' :
+                                                        expInfo.isNearExpiry ? 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
+                                                            'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
+                                                }`}>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="font-bold">到期日期:</span>
+                                                    <span>{expInfo.expirationDate.toLocaleDateString('zh-CN')}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center mt-1">
+                                                    <span className="font-bold">剩余:</span>
+                                                    <span className="font-bold">{expInfo.daysRemaining}天</span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
+                                </div>
+                            </div>
                         </div>
                         <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                             <button onClick={handleSubmitProduct} className="w-full bg-primary hover:bg-primary-hover text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform flex items-center justify-center gap-2">{editingId ? <CheckCircle2 size={20} /> : <Plus size={20} />} {editingId ? '保存修改' : '确认入库'}</button>
