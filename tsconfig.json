@@ -18,12 +18,16 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "baseUrl": ".", // [新增] 配合 paths 使用
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*" // [修改] 这里改成了 ./src/*，让 @ 指向 src 目录
       ]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": [
+    "src"
+  ] // [新增] 这一步非常重要！告诉 TS 只看 src 里面的文件
 }
