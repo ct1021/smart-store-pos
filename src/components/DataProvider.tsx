@@ -123,6 +123,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetchProducts();
     fetchOrders();
+    fetchExpenses();
   }, []);
 
   // 2. 加购逻辑 (for simplified Cashier)
@@ -258,12 +259,20 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-  const addExpense = (expense: Expense) => {
-    setExpenses(prev => [...prev, expense]);
+  const addExpense = async (expense: Expense) => {
+    setExpenses(prev => [expense, ...prev]);
+
+    await supabase.from('expenses').insert([{
+      name: expense.name,
+      amount: expense.amount,
+      category: expense.category || 'other',
+      date: expense.date || new Date().toISOString().split('T')[0]
+    }]);
   };
 
-  const deleteExpense = (id: number) => {
+  const deleteExpense = async (id: number) => {
     setExpenses(prev => prev.filter(e => e.id !== id));
+    await supabase.from('expenses').delete().eq('id', id);
   };
 
   const restockProduct = async (productId: number, quantity: number, totalCost: number) => {

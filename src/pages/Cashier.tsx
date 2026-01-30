@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ScanBarcode, Trash2, Plus, Minus, CreditCard, X, CheckCircle2, ChevronLeft, Package, ScanLine, AlertCircle, Edit3, Flashlight, FlashlightOff, Keyboard, Search, Calculator, Carrot, ChefHat, Coffee, Ticket, ShoppingBag } from 'lucide-react';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { useData, Product, Order } from '../components/DataProvider';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/library';
 
 interface CartItem extends Product {
     qty: number;
@@ -15,9 +16,14 @@ const Cashier: React.FC = () => {
     const [activeModal, setActiveModal] = useState<null | 'scan' | 'payment' | 'clear' | 'editPrice' | 'manualInput'>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const streamRef = useRef<MediaStream | null>(null);
+    const codeReaderRef = useRef<BrowserMultiFormatReader | null>(null);
     const [isPaid, setIsPaid] = useState(false);
     const [editingItem, setEditingItem] = useState<CartItem | null>(null);
     const [tempPrice, setTempPrice] = useState('');
+    const [scanResult, setScanResult] = useState<string>('');
+    const [isScanning, setIsScanning] = useState(false);
+    const lastScanRef = useRef<string>('');
+    const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const [torchOn, setTorchOn] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -27,27 +33,90 @@ const Cashier: React.FC = () => {
 
     const [cart, setCart] = useState<CartItem[]>([]);
 
-    // Camera Logic
+    // Camera + Barcode Scanner Logic
     useEffect(() => {
         let stream: MediaStream | null = null;
+
         if (activeModal === 'scan') {
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+            // Initialize barcode reader with hints for better accuracy
+            const codeReader = new BrowserMultiFormatReader();
+            codeReaderRef.current = codeReader;
+            setIsScanning(false);
+            lastScanRef.current = '';
+
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'environment',
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            })
                 .then(s => {
                     stream = s;
                     streamRef.current = s;
                     if (videoRef.current) {
                         videoRef.current.srcObject = stream;
+
+                        // Start barcode scanning
+                        codeReader.decodeFromVideoDevice(undefined, videoRef.current, (result, error) => {
+                            if (result && !isScanning) {
+                                const barcode = result.getText();
+                                // Prevent duplicate scans within 2 seconds
+                                if (barcode !== lastScanRef.current) {
+                                    handleBarcodeDetected(barcode);
+                                }
+                            }
+                            // Ignore NotFoundException (no barcode in frame)
+                            if (error && !(error instanceof NotFoundException)) {
+                                console.error('Barcode scan error:', error);
+                            }
+                        });
                     }
                 })
                 .catch(err => console.error("Camera permission denied", err));
         }
+
         return () => {
+            // Cleanup
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
             }
+            if (codeReaderRef.current) {
+                codeReaderRef.current.reset();
+            }
+            if (scanTimeoutRef.current) {
+                clearTimeout(scanTimeoutRef.current);
+            }
             streamRef.current = null;
+            setScanResult('');
+            setIsScanning(false);
+            lastScanRef.current = '';
         };
     }, [activeModal]);
+
+    // Barcode Detection Handler
+    const handleBarcodeDetected = (barcode: string) => {
+        setScanResult(barcode);
+
+        // Find product by barcode
+        const product = products.find(p => p.barcode === barcode || p.sku === barcode);
+
+        if (product) {
+            addToCart(product);
+
+            // Success feedback
+            if (navigator.vibrate) navigator.vibrate(200);
+
+            // Auto-close after 1 second
+            setTimeout(() => {
+                setActiveModal(null);
+            }, 1000);
+        } else {
+            // Product not found
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            alert(`条形码 ${barcode} 未找到对应商品`);
+        }
+    };
 
     // Helper to add product to cart
     const addToCart = (product: Product) => {
@@ -326,7 +395,7 @@ const Cashier: React.FC = () => {
 
             {/* 5. Payment Modal */}
             {activeModal === 'payment' && (
-                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+                <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
                     <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-300 sm:zoom-in-95">
                         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
