@@ -14,6 +14,8 @@ export interface Product {
   barcode: string;
   image: string;
   tags: string[];
+  productionDate?: string; // 生产日期 YYYY-MM-DD
+  shelfLifeDays?: number;  // 保质期（天数）
 }
 
 export interface OrderItem {
@@ -95,7 +97,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         category: p.category || 'other',
         barcode: p.barcode || '',
         image: p.image_url || 'https://placehold.co/200x200/cccccc/ffffff?text=No+Image',
-        tags: Array.isArray(p.tags) ? p.tags : []
+        tags: Array.isArray(p.tags) ? p.tags : [],
+        productionDate: p.production_date || undefined,
+        shelfLifeDays: p.shelf_life_days || undefined
       }));
       setProducts(mapped);
     }
@@ -223,7 +227,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       barcode: product.barcode,
       category: product.category,
       image_url: product.image,
-      tags: product.tags || []
+      tags: product.tags || [],
+      production_date: product.productionDate || null,
+      shelf_life_days: product.shelfLifeDays || null
     }]);
   };
 
@@ -234,7 +240,9 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       price: product.price,
       cost: product.cost,
       stock: product.stock,
-      tags: product.tags || []
+      tags: product.tags || [],
+      production_date: product.productionDate || null,
+      shelf_life_days: product.shelfLifeDays || null
     }).eq('id', product.id);
   };
 
