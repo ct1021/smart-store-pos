@@ -95,7 +95,7 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
         category: p.category || 'other',
         barcode: p.barcode || '',
         image: p.image_url || 'https://placehold.co/200x200/cccccc/ffffff?text=No+Image',
-        tags: []
+        tags: Array.isArray(p.tags) ? p.tags : []
       }));
       setProducts(mapped);
     }
@@ -222,7 +222,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       stock: product.stock,
       barcode: product.barcode,
       category: product.category,
-      image_url: product.image
+      image_url: product.image,
+      tags: product.tags || []
     }]);
   };
 
@@ -232,7 +233,8 @@ export const DataProvider = ({ children }: { children: ReactNode }) => {
       name: product.name,
       price: product.price,
       cost: product.cost,
-      stock: product.stock
+      stock: product.stock,
+      tags: product.tags || []
     }).eq('id', product.id);
   };
 
